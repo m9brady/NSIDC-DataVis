@@ -8,6 +8,102 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 import mpl_toolkits.basemap as bm
 from glob import glob
 
+import requests
+from bs4 import BeautifulSoup
+
+# requests method
+# assumes your .netrc is setup beforehand with NASA EarthData credentials
+def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0611_seaice_age_v3'):
+    # setup local base directory (relative to current working directory)
+    base_dir = os.path.basename(daac_url)
+    if not os.path.exists(base_dir): os.mkdir(base_dir)
+    listing = []
+    # first get the directory listing and lat/lon array files
+    r = requests.get(daac_url)
+    if r.status_code == 200:
+        rsoup = BeautifulSoup(r.text, 'lxml')
+        listing = [row.findAll('a')[1].text for row in rsoup.findAll('tr')]
+        lat_remote = daac_url+'/Na12500-CF_latitude.dat' # never changes?
+        lat_local = os.path.join(base_dir, os.path.basename(lat_remote))
+        if os.path.basename(lat_remote) in listing:
+            if not os.path.isfile(lat_local):
+                lat = requests.get(lat_remote)
+                if lat.status_code == 200:
+                    with open(lat_local, 'wb') as latbin:
+                        latbin.write(lat.content)
+        lon_remote = daac_url+'/Na12500-CF_longitude.dat' # never changes?
+        lon_local = os.path.join(base_dir, os.path.basename(lon_remote))
+        if os.path.basename(lon_remote) in listing:
+            if not os.path.isfile(lon_local):
+                lon = requests.get(lon_remote)
+                if lon.status_code == 200:
+                    with open(lon_local, 'wb') as lonbin:
+                        lonbin.write(lon.content)
+    else:
+        print r.status_code, r.reason
+        return -1
+    r.close()
+    del rsoup
+    # check to ensure we didn't get an empty directory listing
+    if len(listing) == 0:
+        print 'Error occurred during root tree listing of {}'.format(daac_url)
+        return -1
+    # establish a list of subfolders (should be a bunch of years)
+    url_list = []
+    if 'data/' in listing:
+        new_url = daac_url + '/data/'
+        d = requests.get(new_url)
+        if d.status_code == 200:
+            dsoup = BeautifulSoup(d.text, 'lxml')
+            year_list = [row.findAll('a')[1].text for row in dsoup.findAll('tr') if len(row.findAll('a')[1].text) == 5]
+            url_list = [new_url+ '{}'.format(y) for y in year_list]
+            del year_list
+        else:
+            print d.status_code, d.reason
+            return -1
+        d.close()
+        del dsoup
+    # check to ensure we didn't get an empty directory listing
+    if len(url_list) == 0:
+        print 'Error occurred during subdirectory listing of {}'.format(daac_url)
+        return -1
+    bin_urls = []
+    for url in url_list:
+        u = requests.get(url)
+        if u.status_code == 200:
+            # too lazy to check for empty year-directories here, will probably come back to bite me
+            usoup = BeautifulSoup(u.text, 'lxml')
+            bin_list = [row.findAll('a')[1].text for row in usoup.findAll('tr') if '.bin' in row.findAll('a')[1].text]
+            bin_urls.append([url + '{}'.format(b) for b in bin_list])
+        u.close()
+        del usoup
+    if len(bin_urls) == 0:
+        print 'Error occurred during binfile discovery of {}'.format(daac_url)
+        return -1
+    final_urls = [item for sublist in bin_urls for item in sublist]
+    del bin_urls
+    # finally, download the binaries
+    for bin_remote in final_urls:
+        bin_local = os.path.join(base_dir, bin_remote.split(base_dir)[-1][1:].replace('/', os.sep))
+        bin_localdir = os.path.dirname(bin_local)
+        if not os.path.exists(bin_localdir): os.makedirs(bin_localdir)
+        if not os.path.isfile(bin_local):
+            f = requests.get(bin_remote)
+            if f.status_code == 200:
+                with open(bin_local, 'wb') as outbin:
+                    outbin.write(f.content)
+                    print "Downloaded {} to {}".format(os.path.basename(bin_local), os.path.abspath(bin_localdir))
+            f.close()
+        else:
+            print "File exists for {}. Skipping...".format(os.path.basename(bin_local))
+    
+    
+    
+    
+    
+    
+
+
 #http://stackoverflow.com/a/10824420
 # a function to create a 1-d list from a list containing lists of lists of lists of lists of lists
 def flatten(container):
