@@ -10,18 +10,19 @@ from glob import glob
 
 import requests
 from bs4 import BeautifulSoup
+from time import sleep
 
 # requests method
 # assumes your .netrc is setup beforehand with NASA EarthData credentials
-def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0611_seaice_age_v3'):
+def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0611_seaice_age_v3', outfolder=os.getcwd()):
     # setup local base directory (relative to current working directory)
-    base_dir = os.path.basename(daac_url)
-    if not os.path.exists(base_dir): os.mkdir(base_dir)
+    base_dir = os.path.join(outfolder, os.path.basename(daac_url))
+    if not os.path.exists(base_dir): os.makedirs(base_dir)
     listing = []
     # first get the directory listing and lat/lon array files
     r = requests.get(daac_url)
     if r.status_code == 200:
-        rsoup = BeautifulSoup(r.text, 'lxml')
+        rsoup = BeautifulSoup(r.text, 'html.parser')
         listing = [row.findAll('a')[1].text for row in rsoup.findAll('tr')]
         lat_remote = daac_url+'/Na12500-CF_latitude.dat' # never changes?
         lat_local = os.path.join(base_dir, os.path.basename(lat_remote))
@@ -44,6 +45,7 @@ def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc
         return -1
     r.close()
     del rsoup
+    sleep(2)
     # check to ensure we didn't get an empty directory listing
     if len(listing) == 0:
         print 'Error occurred during root tree listing of {}'.format(daac_url)
@@ -54,7 +56,7 @@ def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc
         new_url = daac_url + '/data/'
         d = requests.get(new_url)
         if d.status_code == 200:
-            dsoup = BeautifulSoup(d.text, 'lxml')
+            dsoup = BeautifulSoup(d.text, 'html.parser')
             year_list = [row.findAll('a')[1].text for row in dsoup.findAll('tr') if len(row.findAll('a')[1].text) == 5]
             url_list = [new_url+ '{}'.format(y) for y in year_list]
             del year_list
@@ -68,11 +70,12 @@ def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc
         print 'Error occurred during subdirectory listing of {}'.format(daac_url)
         return -1
     bin_urls = []
+    sleep(2)
     for url in url_list:
         u = requests.get(url)
         if u.status_code == 200:
             # too lazy to check for empty year-directories here, will probably come back to bite me
-            usoup = BeautifulSoup(u.text, 'lxml')
+            usoup = BeautifulSoup(u.text, 'html.parser')
             bin_list = [row.findAll('a')[1].text for row in usoup.findAll('tr') if '.bin' in row.findAll('a')[1].text]
             bin_urls.append([url + '{}'.format(b) for b in bin_list])
         u.close()
@@ -80,11 +83,12 @@ def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc
     if len(bin_urls) == 0:
         print 'Error occurred during binfile discovery of {}'.format(daac_url)
         return -1
-    final_urls = [item for sublist in bin_urls for item in sublist]
+    # flatten the list of lists -> https://stackoverflow.com/a/952952
+    final_urls = [x for y in bin_urls for x in y]
     del bin_urls
     # finally, download the binaries
     for bin_remote in final_urls:
-        bin_local = os.path.join(base_dir, bin_remote.split(base_dir)[-1][1:].replace('/', os.sep))
+        bin_local = os.path.join(base_dir, bin_remote.split('nsidc0611_seaice_age_v3')[-1][1:].replace('/', os.sep))
         bin_localdir = os.path.dirname(bin_local)
         if not os.path.exists(bin_localdir): os.makedirs(bin_localdir)
         if not os.path.isfile(bin_local):
@@ -96,15 +100,8 @@ def get_iceage_data(daac_url='https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc
             f.close()
         else:
             print "File exists for {}. Skipping...".format(os.path.basename(bin_local))
-    
-    
-    
-    
-    
-    
 
-
-#http://stackoverflow.com/a/10824420
+# http://stackoverflow.com/a/10824420
 # a function to create a 1-d list from a list containing lists of lists of lists of lists of lists
 def flatten(container):
     for i in container:
@@ -115,17 +112,19 @@ def flatten(container):
             yield i
 
 
-data_dir = os.path.join(tempfile.gettempdir(), 'NSIDC_SeaIceAge')
+data_dir = os.path.join(tempfile.gettempdir(), 'NSIDC_SeaIceAge', 'nsidc0611_seaice_age_v3')
 if not os.path.exists(data_dir): os.mkdir(data_dir)
-outdir = os.path.join(data_dir, "out_jpeg")
+outdir = os.path.join(os.environ['HOME'], "NSIDC_ICEAGE", "out_jpeg")
+if not os.path.isdir(outdir): os.makedirs(outdir)
+print "Saving output figures to: ", outdir
 os.chdir(data_dir)
 
-lats = os.path.join(data_dir, 'data', 'Na12500-CF_latitude.dat')
-lons = os.path.join(data_dir, 'data', 'Na12500-CF_longitude.dat')
+lats = os.path.join(data_dir, 'Na12500-CF_latitude.dat')
+lons = os.path.join(data_dir, 'Na12500-CF_longitude.dat')
 lat_arr = np.fromfile(lats,dtype='float32').reshape((722,722))
 lon_arr = np.fromfile(lons,dtype='float32').reshape((722,722))
 
-age_list = glob(os.path.join(data_dir, 'data', 'bins', '*', 'iceage.*.bin'))
+age_list = glob(os.path.join(data_dir, 'data', '*', 'iceage.*.bin'))
 
 for infile in age_list:
     fdir, fname = os.path.split(infile)
@@ -196,7 +195,8 @@ for infile in age_list:
         fig.text(0.615, 0.02, "Source: Tschudi, Fowler, Maslanik,\nStewart, and Meier (2016)\ndx.doi.org/10.5067/PFSVFZA9Y85G", 
                  ha='left', va='bottom', fontdict=source_font, bbox=bbox_style)
 
-        fig.savefig(outfile)
+        with open(outfile, 'wb') as outf:
+            fig.savefig(outf, dpi=150)
         plt.close(fig)
-        print os.path.basename(outfile)
+        #print os.path.basename(outfile)
         #plt.show()

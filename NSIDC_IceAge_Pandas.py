@@ -8,6 +8,7 @@ import numpy.ma as ma
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.patheffects as path_effects
 
 #import statsmodels.api as sm
 
@@ -25,7 +26,7 @@ bounds = [60.0, 90.0, -180.0, 180.0]
 # svalbard
 #bounds = [75.0, 81.0, 5.0, 25.0]
 # fram
-bounds = [73.0, 82.0, -22.0, 13.0]
+#bounds = [73.0, 82.0, -22.0, 13.0]
 # high arctic canada
 #bounds = [81.0, 88.0, -110.0, -50.0]
 # top 10 lat
@@ -38,26 +39,26 @@ bounds = [73.0, 82.0, -22.0, 13.0]
 
 # first week of Sept is 35/36 depending on year
 # last week of March is ~12
-week = 36
+week = 35
 # get today's (local time) weeknum
 #week = datetime.today().isocalendar()[1]
 
 # first year in time series is 1984
 start_year = 1984
 # 1997 to line up with Radarsat1
-start_year = 1997
+#start_year = 1997
 
 
 # prelimary workspace setup, assumes the binaries and grid-dats are
 # already downloaded and ready to go
 # http://dx.doi.org/10.5067/PFSVFZA9Y85G
-data_dir = os.path.join(tempfile.gettempdir(), 'NSIDC_SeaIceAge')
+data_dir = os.path.join(tempfile.gettempdir(), 'NSIDC_SeaIceAge', 'nsidc0611_seaice_age_v3')
 os.chdir(data_dir)
-lats = os.path.join(data_dir, 'data', 'Na12500-CF_latitude.dat')
-lons = os.path.join(data_dir, 'data', 'Na12500-CF_longitude.dat')
+lats = os.path.join(data_dir, 'Na12500-CF_latitude.dat')
+lons = os.path.join(data_dir, 'Na12500-CF_longitude.dat')
 lat_arr = np.fromfile(lats, dtype='float32')
 lon_arr = np.fromfile(lons, dtype='float32')
-age_files = sorted(glob(os.path.join(data_dir, 'data', 'bins','*','iceage.*.bin')))
+age_files = sorted(glob(os.path.join(data_dir, 'data', '*', 'iceage.*.bin')))
 
 # probably not necessary, but makes the pandas dataframes look a litte nicer in ipython
 frame_cols = np.empty((0,), dtype=[('year',np.uint8), 
@@ -114,6 +115,9 @@ for idx, age_file in enumerate(age_files):
     cumulativepct_frame.loc[idx] = [year, week_num, fyi_cp, syi_cp, myi3_cp, myi4_cp, myi5_cp]#, ow_cp]
     pixcount_frame.loc[idx] = [year, week_num, fyi_count, syi_count, myi3_count, myi4_count, myi5_count]#, ow_count]
 
+del file_arr
+del age_arr
+
 # generate figure with two horizontally-stacked subplots
 fig = plt.figure(figsize=(15,7))
 ax = fig.add_subplot(121)
@@ -139,7 +143,7 @@ b.fillcontinents(color='0.90', lake_color=None) # grey continents with major lak
 # latitude gridlines (does not plot higher than 80N for some reason)
 b.drawparallels(np.arange(40,90,10), color='0.25', linewidth=0.5, labels=[1,1,0,0])
 # longitude gridlines
-b.drawmeridians(np.arange(-180,180,10), color='0.25', linewidth=0.5, labels=[0,0,1,1])
+b.drawmeridians(np.arange(-180,180,20), color='0.25', linewidth=0.5, labels=[0,0,1,1])
 # convert lats/lons to map units
 x,y = b(lon_arr, lat_arr)
 # mask for the current area of interest
@@ -152,30 +156,36 @@ y2 = y[mask]
 
 
 # plot the boundary AOI with 55% transparency to show coastline/graticule underneath
-#x2[x2 == 0] = np.nan
-#y2[y2 == 0] = np.nan
-#b.plot(x2, y2, alpha=0.45, color='#EFAF40', label='_nolegend_')
-if not (bounds[3] == 180 and bounds[2] == -180):
-    xbnds, ybnds = b([bounds[2], bounds[2], bounds[3], bounds[3]], [bounds[0], bounds[1], bounds[1], bounds[0]]) 
-    poly = patches.Polygon(zip(xbnds,ybnds), facecolor='#EFAF40', alpha=0.4)
-else:
-    pass
+x2[x2 == 0] = np.nan
+y2[y2 == 0] = np.nan
+b.plot(x2, y2, alpha=0.45, color='#EFAF40', label='_nolegend_')
+#if not (bounds[3] == 180 and bounds[2] == -180):
+#    xbnds, ybnds = b([bounds[2], bounds[2], bounds[3], bounds[3]], [bounds[0], bounds[1], bounds[1], bounds[0]]) 
+#    poly = patches.Polygon(zip(xbnds,ybnds), facecolor='#EFAF40', alpha=0.4)
+#    ax_map.add_patch(poly)
+#else:
+#    pass
     
-ax_map.add_patch(poly)
 # manually set legend entry for area of interest
 pat = patches.Patch(color='#F5CF8C', label=aoi_label)
 # add legend to subplot in upper left corner
-ax_map.legend(handles=[pat], loc='upper left', framealpha=1.)
+ax_map.legend(handles=[pat], loc='upper left', framealpha=1., edgecolor='k')
 
-
+map_file = sorted([f for f in age_files if str(week).zfill(2) in os.path.basename(f).split(".")[4]])[-1]
+map_arr = np.fromfile(map_file, dtype='uint8')
 #most_current = age_files.index()
-f = file_arr.copy().astype(float)
+f = map_arr.copy().astype(float)
 #f = ma.masked_array(f, mask=~mask, fill_value=np.nan)
 # pixels older than 5 years will be coloured the same as myi5
 f[np.logical_and(f <> 255, f > 30)] = 30
 # mask out the land and out-of-current-bounds pixels
 f[np.where(f == 255)] *= np.nan
 f[~mask] *= np.nan
+
+# add text to denote which dataset we're using
+text_content = "Dataset shown: {}".format(os.path.basename(map_file))
+props = dict(boxstyle='round', facecolor='white', alpha=1.)
+text = ax_map.text(200000,200000,text_content,bbox=props)
 
 # get unique pixel values, for setting up the colour mapping
 uni = np.unique(f[~np.isnan(f)]).tolist()
@@ -222,7 +232,7 @@ ax.set_yticks([i/10. for i in xrange(11)])
 y_ticklabels = ['{}%'.format(i*10) for i in range(0,11)]
 y_ticklabels.reverse()
 ax.set_yticklabels(y_ticklabels)
-ax.legend(framealpha=1.)
+ax.legend(framealpha=1., edgecolor='k')
 ax.set_title('{}-{} Sea Ice Age Composition (Week {}/52)'.format(min(x_axis_min_range), max(x_axis_min_range), week))
 fig.text(0.59, 0.02, 'EASE-Grid Sea Ice Age from Tschudi et al. (2016): dx.doi.org/10.5067/PFSVFZA9Y85G')
 fig.tight_layout()

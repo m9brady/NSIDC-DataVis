@@ -9,6 +9,7 @@ import pandas as pd # data frame formatting and data ingestion
 import statsmodels.api as sm # Ordinary-least squares regression
 from ftplib import FTP, all_errors # Downloading data from NSIDC servers
 import tempfile # finding the temp directory on filesystem
+import seaborn as sns; sns.set
 
 # setup the working directories
 ######## global variables are usually not recommended ###########
@@ -18,6 +19,7 @@ if not os.path.exists(data_dir):
     print "Creating working directory under: {}".format(data_dir)
     os.makedirs(csv_dir)
 else:
+    print "Working directory: {}".format(data_dir)
     if not os.path.exists(csv_dir):
         os.mkdir(csv_dir)
 
@@ -69,6 +71,7 @@ def pull_nsidc_data(hemisphere='N'):
 # convert the retrieved csv datafiles into a pandas dataframe, replacing -9999 values with NaN's
 def format_dframe(hemisphere='N'):
     csv_files = glob(os.path.join(csv_dir, '{}_??_extent_v?.?.csv'.format(hemisphere)))
+    data_version = os.path.splitext(os.path.basename(csv_files[0]))[0].split("v")[-1]
     # generate an empty pandas DataFrame for appending our source data
     dframe = pd.DataFrame()
     for csv in csv_files:
@@ -83,11 +86,11 @@ def format_dframe(hemisphere='N'):
     #dframe['timeslice'] = dframe.apply(lambda x: datetime.datetime.strptime("{}{}".format(x['year'],x['month']), "%Y%m"), axis=1)
     # account for -9999 values a.k.a. missing data
     dframe.loc[dframe['extent'] == -9999, ['extent', 'area', 'data_type']] = np.nan
-    return dframe
+    return dframe, data_version
 
 
 # subset and plot the dataframe depending on the passed month value  
-def plot_dframe(dframe, month=None, summary=False):
+def plot_dframe(dframe, month=None, version='3.0', summary=False):
     # rudimentary parameter checking
     if month is not None and month in xrange(1,13):
         # subset input dataframe to the month of interest
@@ -145,7 +148,7 @@ def plot_dframe(dframe, month=None, summary=False):
         #ax.set_yticklabels(ax.get_yticklabels(), axes_ticklabel_font)
         #ax.grid(color='#D8D8D8', which='minor', alpha=0.4)
         
-        fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v2.1 monthly data files (doi:10.7265/N5736NV7)")
+        fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v{} monthly data files (doi:10.7265/N5736NV7)".format(version))
         # some fun statistics and an estimate of what the NSIDC Monthly Sea Ice News and Analysis will be
         if summary:
             print est.summary2()
@@ -171,7 +174,7 @@ def plot_dframe(dframe, month=None, summary=False):
         raise ValueError("Must supply an integer argument for month (e.g. 12 for December)")
 
 
-def plot_pct_anomaly(dframe, month=None, summary=False):
+def plot_pct_anomaly(dframe, month=None, version='3.0', summary=False):
     if month is not None and month in xrange(1,13):
         # subset input dataframe to the month of interest
         newframe = dframe.loc[dframe['month'] == month]
@@ -245,7 +248,19 @@ def plot_pct_anomaly(dframe, month=None, summary=False):
         #ax.annotate(frame_text, loc='lower left', bbox=bbox_props)
         ax.add_artist(frame_text)
         
-        fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v2.1 monthly data files (doi:10.7265/N5736NV7)")
+        # add red 0-marker
+        #xmin, xmax = ax.get_xlim()
+        #xvals = np.linspace(xmin, xmax, (xmax-xmin)+1)
+        #ax.plot(xvals, np.zeros(xvals.shape), lw=4, color='red', alpha=0.3)
+        
+        # set ylim based on larger extreme value
+        ymin, ymax = ax.get_ylim()
+        if abs(ymin) > abs(ymax):
+            ax.set_ylim(ymin//1, -(ymin//1))
+        else:
+            ax.set_ylim(-ymax//1, (ymax//1))
+        
+        fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v{} monthly data files (doi:10.7265/N5736NV7)".format(version))
         # some fun "statistics" and an estimate of what the NSIDC Monthly Sea Ice News and Analysis will mention
         pct_decade = est.params.year * 10
         pct_decade_std = est.bse.year * 10
@@ -255,14 +270,14 @@ def plot_pct_anomaly(dframe, month=None, summary=False):
         
 
 def plot_master(month=datetime.today().month):
-    #pull_nsidc_data('N')
-    #pull_nsidc_data('S')
-    north_ice_extent = format_dframe('N')
-    plot_dframe(north_ice_extent, month)
+    pull_nsidc_data('N')
+    pull_nsidc_data('S')
+    north_ice_extent, version = format_dframe('N')
+    plot_dframe(north_ice_extent, month, version)
     plot_pct_anomaly(north_ice_extent, month)
-
+    return north_ice_extent
 
 
 if __name__ == "__main__":
-    plot_master(month=7)
+    df = plot_master(month=11)
     plt.show()

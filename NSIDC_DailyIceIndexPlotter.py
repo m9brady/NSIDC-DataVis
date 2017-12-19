@@ -12,20 +12,20 @@ if not os.path.exists(data_dir):
     print "Creating working directory under: {}".format(data_dir)
     os.mkdir(data_dir)
 
-N_daily_csv = os.path.join(data_dir, 'N_seaice_extent_daily_v2.1.csv')
-S_daily_csv = os.path.join(data_dir, 'S_seaice_extent_daily_v2.1.csv')
-N_climo_csv = os.path.join(data_dir, 'N_seaice_extent_climatology_1981-2010_v2.1.csv')
-S_climo_csv = os.path.join(data_dir, 'S_seaice_extent_climatology_1981-2010_v2.1.csv')
+N_daily_csv = os.path.join(data_dir, 'N_seaice_extent_daily_v3.0.csv')
+S_daily_csv = os.path.join(data_dir, 'S_seaice_extent_daily_v3.0.csv')
+N_climo_csv = os.path.join(data_dir, 'N_seaice_extent_climatology_1981-2010_v3.0.csv')
+S_climo_csv = os.path.join(data_dir, 'S_seaice_extent_climatology_1981-2010_v3.0.csv')
    
 def pull_datafiles(hemisphere, outdir, climo=False):
     if hemisphere.upper() in ["SOUTH", "S"]:
         data_dir = 'DATASETS/NOAA/G02135/south/daily/data'
-        data_file = 'S_seaice_extent_daily_v2.1.csv'
-        climo_file = 'S_seaice_extent_climatology_1981-2010_v2.1.csv' if climo else None
+        data_file = 'S_seaice_extent_daily_v3.0.csv'
+        climo_file = 'S_seaice_extent_climatology_1981-2010_v3.0.csv' if climo else None
     elif hemisphere.upper() in ["NORTH", "N"]:
         data_dir = 'DATASETS/NOAA/G02135/north/daily/data'
-        data_file = 'N_seaice_extent_daily_v2.1.csv'
-        climo_file = 'N_seaice_extent_climatology_1981-2010_v2.1.csv' if climo else None
+        data_file = 'N_seaice_extent_daily_v3.0.csv'
+        climo_file = 'N_seaice_extent_climatology_1981-2010_v3.0.csv' if climo else None
     else:
         print "Error in retrieving remote data files (hemisphere arg must be one of ['north', 'n', 'south', 's'])"
         return None
@@ -197,7 +197,7 @@ def plot_it_up(aoi):
     fig.tight_layout()
     
     # data source message at bottom-left of figure
-    fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v2.1 daily data files (doi:10.7265/N5736NV7)")
+    fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v3.0 daily data files (doi:10.7265/N5736NV7)")
     
     # "Latest-update" message at bottom-right of figure
     edate = subframe[-1:]
