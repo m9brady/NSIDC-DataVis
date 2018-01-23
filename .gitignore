@@ -1,5 +1,7 @@
 # NSIDC-DataVis
-nsidc0611_seaice_age*
+*.csv
+*.bin
+*.dat
 
 # Windows image file caches
 Thumbs.db
