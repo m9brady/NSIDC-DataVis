@@ -24,6 +24,9 @@ Tschudi, M., C. Fowler, J. Maslanik, J. S. Stewart, and W. Meier. 2016. EASE-Gri
 ![Daily Arctic Sea Ice Index](./plots/NSIDC_DailyIceIndex_N-Hemisphere.png)
 
 ### MonthlyIceIndexPlotter
+*Extra Notes:* There is one constant at the top of the script that can be edited at the user's discretion:
+- `PLOT_MONTH`: Force the script to plot a specific month rather than the current month
+
 *Usage:* `python nsidc-tools/MonthlyIceIndexPlotter.py config.cfg`
 - Downloads the latest Monthly Sea Ice Index datasets from NSIDC FTP to local storage. (<1MB)
 - Initializes pandas dataframes for the downloaded datasets with some data sanitizing.

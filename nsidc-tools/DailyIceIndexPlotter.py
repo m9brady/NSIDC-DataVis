@@ -18,6 +18,7 @@ TITLE_FONTPARAMS = {'family': 'sans-serif',
                     'weight': 'normal',
                     'size': '18'}
 
+
 def parse_cfg(cfgfile):
     parser = ConfigParser()
     parser.read(cfgfile)

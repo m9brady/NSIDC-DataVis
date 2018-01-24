@@ -20,10 +20,12 @@ import requests
 from bs4 import BeautifulSoup
 from mpl_toolkits.basemap import Basemap
 
+# constants to change
 AGE_CONST = 'nsidc0611_seaice_age_v3'
 AGE_FILESIZE = 510
 GEO_BOUNDS = [65.0, 90.0, -180.0, 180.0]
 WEEK = int(datetime.today().isocalendar()[1])
+
 
 def parse_cfg(cfgfile):
     '''
