@@ -31,7 +31,7 @@ Tschudi, M., C. Fowler, J. Maslanik, J. S. Stewart, and W. Meier. 2016. EASE-Gri
 - Downloads the latest Monthly Sea Ice Index datasets from NSIDC FTP to local storage. (<1MB)
 - Initializes pandas dataframes for the downloaded datasets with some data sanitizing.
 - For the current month, calculates linear trend using Ordinary Least Squares regression based on the 1981-2010 mean sea ice extent.
-- Plots results in 2 ways (but basically shows the same thing :grin: ):
+- Plots results in 2 ways but basically shows the same thing :grin::
   - Monthly mean sea ice extent overlaid by trendline:
 
 ![Monthly Arctic Sea Ice Index](./plots/NSIDC_MonthlyIceIndex_N-Hemisphere.png)
@@ -52,7 +52,7 @@ Tschudi, M., C. Fowler, J. Maslanik, J. S. Stewart, and W. Meier. 2016. EASE-Gri
 - `WEEK`: Which week number should be plotted, default is the current week
 
 *Usage:* `python nsidc-tools/IceAgePlotter.py config.cfg`
-- Asks the user whether or not to download any missing Weekly Sea Ice Age datasets from NASA EarthData DAAC to local storage. (~880MB for full dataset)
+- Asks the user whether or not to download any missing Weekly Sea Ice Age datasets from NASA EarthData DAAC to local storage. **(~880MB for full dataset)**
 - Reads all available local ice age datasets and generates pandas dataframes for the pixel counts of the following ice age classes:
   - First-year Ice
   - Second-year Ice

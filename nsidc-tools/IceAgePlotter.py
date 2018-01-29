@@ -59,7 +59,10 @@ def download_bin_data(download_dir):
         os.makedirs(data_local)
     local_listing = sorted(glob(os.path.join(data_local, '*.bin')))
     url = 'https://daacdata.apps.nsidc.org/pub/DATASETS/' + AGE_CONST
-    r = requests.get(url)
+    try:
+        r = requests.get(url)
+    except requests.exceptions.ConnectionError:
+        raise Exception("Error - Cannot connect to NASA EarthData catalog. Check your internet settings")
     if r.ok:
         rsoup = BeautifulSoup(r.text, 'html.parser')
         listing = [row.findAll('a')[1].text for row in rsoup.findAll('tr')]

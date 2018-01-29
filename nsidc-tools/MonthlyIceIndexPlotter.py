@@ -4,7 +4,7 @@ from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from datetime import datetime, timedelta
 from glob import glob
 from shutil import copyfileobj
-from urllib2 import urlopen
+from urllib2 import urlopen, URLError
 
 # suppress the FutureWarning about pandas.core.datetools
 import warnings
@@ -42,7 +42,11 @@ def download_monthly_data(download_dir, hemisphere='N'):
     else:
         csv_url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/monthly/data/'
         #shp_url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/monthly/shapefiles/shp_extent/'
-    csv_listing = urlopen(csv_url).read().splitlines()
+    try:
+        csv_listing = urlopen(csv_url).read().splitlines()
+    except URLError:
+        print "Cannot connect to NSIDC FTP, check your internet settings"
+        return None
     csv_files = [csv_url+f.split()[-1] for f in csv_listing[2:] if f.endswith('.csv')]
     if len(csv_files) == 0:
         print "No files found at remote FTP:", csv_url

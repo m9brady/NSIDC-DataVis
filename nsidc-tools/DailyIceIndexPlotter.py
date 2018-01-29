@@ -3,7 +3,7 @@ import sys
 from ConfigParser import ConfigParser, NoSectionError, NoOptionError
 from datetime import datetime, timedelta
 from shutil import copyfileobj
-from urllib2 import urlopen
+from urllib2 import urlopen, URLError
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,10 +40,13 @@ def download_daily_data(download_dir, hemisphere='N'):
     today = datetime.today()
     if hemisphere.upper() in ['SOUTH', 'S']:
         url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/'
-        ftp_listing = urlopen(url).read().splitlines()
     else:
         url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/'
+    try:
         ftp_listing = urlopen(url).read().splitlines()
+    except URLError:
+        print "Cannot connect to NSIDC FTP, check your internet settings"
+        return None, None
     data_files = [f.split()[-1] for f in ftp_listing[:4] if f.endswith('.csv')]
     #  climatology file (.csv)
     try:
