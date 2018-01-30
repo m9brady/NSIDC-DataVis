@@ -186,10 +186,10 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
             expanded_index = pd.DatetimeIndex(start=dobj, end=dobj+timedelta(364), freq='1D')
             subframe = subframe.reindex(expanded_index)
         subframe.index = common_index
-        # experimenting with smoothing, will have to expand the timeframe 
-        #interpolated_extent = subframe.Extent.interpolate(method='cubic')
-        #interpolated_extent.plot.line(ax=ax, x='index', y='Extent', label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
-        subframe.plot(ax=ax, x=common_index, y='Extent', label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
+        # experimenting with pandas rolling means
+        extent_rolling = subframe['Extent'].rolling(min_periods=1, window=5, center=False).mean()
+        extent_rolling.plot(ax=ax, label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
+        #subframe.plot(ax=ax, x=common_index, y='Extent', label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
     
     # Fill in the shaded plot to show which years fall within <sigma> standard deviations from the 1981-2010 mean
     climo_df.index = common_index
