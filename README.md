@@ -19,7 +19,7 @@ Tschudi, M., C. Fowler, J. Maslanik, J. S. Stewart, and W. Meier. 2016. EASE-Gri
 *Usage:* `python nsidc-tools/DailyIceIndexPlotter.py config.cfg`
 - Downloads the latest Daily Sea Ice Index datasets from NSIDC FTP to local storage. (~5MB)
 - Initializes pandas dataframes for North hemisphere, South hemisphere, and Global areas of interest.
-- Generates overlapping line plots to show daily progression of sea ice extent:
+- Generates overlapping line plots to show daily progression of sea ice extent (smoothed with 5-day window mean):
 
 ![Daily Arctic Sea Ice Index](./plots/NSIDC_DailyIceIndex_N-Hemisphere.png)
 
