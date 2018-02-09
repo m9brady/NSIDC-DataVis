@@ -152,7 +152,7 @@ def download_bin_data(download_dir):
 
 def plot_stacked_fill(week=35, bounds=[65.0, 90.0, -180.0, 180.0], start_year=1984, end_year=2018, data_dir='./data/'+AGE_CONST):
     '''
-    Load binary sea ice datasets into memory, and plot the stacked fill charts 
+    Load binary sea ice datasets into memory, and plot the stacked fill charts
     for the selected year range and geographic boundaries
     -------------------------------
     `week` (int): the week number to plot with. `Default 35`
@@ -178,7 +178,7 @@ def plot_stacked_fill(week=35, bounds=[65.0, 90.0, -180.0, 180.0], start_year=19
     years = [str(y) for y in range(start_year, end_year+1)]
     age_files = [f for f in age_files if os.path.basename(f).split(".")[3] in years]
     # pre-formatted dataframe columns
-    frame_cols = np.empty((0,), dtype=[('YEAR','uint16'), 
+    frame_cols = np.empty((0,), dtype=[('YEAR','uint16'),
                             ('WEEK_NUM','uint8'), 
                             ('FYI','float'), 
                             ('SYI','float'), 
@@ -367,6 +367,7 @@ def main(cfg):
 
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.dirname(__file__)))
     # python nsidc-tools/MonthlyIceIndexPlotter.py config.cfg
     if len(sys.argv) == 2:
         CFG_FILE = sys.argv[1]

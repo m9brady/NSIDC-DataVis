@@ -145,6 +145,7 @@ ENV/
 
 # VSCode project settings
 .vscode
+*.code-workspace
 
 # Rope project settings
 .ropeproject
@@ -154,4 +155,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-

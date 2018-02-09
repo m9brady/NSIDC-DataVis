@@ -101,7 +101,7 @@ def download_daily_data(download_dir, hemisphere='N'):
 def prep_dataframes(daily, climo):
     '''
     Due to some issues with data gaps, it is necessary to do some interpolation and data-sanitizing before plotting.
-    Future work can also include some smoothing 
+    Future work can also include some smoothing
     '''
     df_daily = pd.read_csv(daily, skiprows=2, usecols=[0, 1, 2, 3, 4],
                            names=['Year', 'Month', 'Day', 'Extent', 'Missing'],
@@ -127,7 +127,7 @@ def prep_dataframes(daily, climo):
     # climo data might be slightly flawed now due to the lack of including interpolated source data....
     df_climo = pd.read_csv(climo, skiprows=2,
                            names=['DOY', 'Average_Extent', 'STD', '10th', '25th', '50th', '75th', '90th'],
-                           dtype={'DOY':'uint16', 'Average_Extent':float, 'STD':float, '10th':float, 
+                           dtype={'DOY':'uint16', 'Average_Extent':float, 'STD':float, '10th':float,
                                   '25th':float, '50th':float, '75th':float, '90th':float})
     # Drop Feb 29 from climo because it is the worst
     df_climo = df_climo.loc[df_climo.DOY <> 60]
@@ -142,17 +142,17 @@ def prep_global_dataframes(n_d, n_c, s_d, s_c):
                                   'Extent': n_d.Extent + s_d.Extent,
                                   'Missing': n_d.Missing + s_d.Missing,
                                   'Interpolated': n_d.Interpolated & s_d.Interpolated
-                                 }, 
-                            columns=['Year', 'Month', 'Day', 'Extent', 
+                                 },
+                            columns=['Year', 'Month', 'Day', 'Extent',
                                      'Missing', 'Interpolated'])
     df_daily['Interpolated'] = df_daily['Interpolated'].astype(bool)
-    df_climo = pd.DataFrame(data={'DOY': n_c.DOY, 
+    df_climo = pd.DataFrame(data={'DOY': n_c.DOY,
                                   'Average_Extent':n_c.Average_Extent + s_c.Average_Extent,
                                   'STD':(n_c.STD + s_c.STD) / 2., 'p10':n_c['10th'] + s_c['10th'],
                                   'p25':n_c['25th'] + s_c['25th'], 'p50':n_c['50th'] + s_c['50th'],
                                   'p75':n_c['75th'] + s_c['75th'], 'p90':n_c['90th'] + s_c['90th']
-                                 }, 
-                            columns=['DOY', 'Average_Extent', 'STD', 'p10', 
+                                 },
+                            columns=['DOY', 'Average_Extent', 'STD', 'p10',
                                      'p25', 'p50', 'p75', 'p90'])
     return df_daily, df_climo
 
@@ -190,14 +190,14 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
         extent_rolling = subframe['Extent'].rolling(min_periods=1, window=5, center=False).mean()
         extent_rolling.plot(ax=ax, label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
         #subframe.plot(ax=ax, x=common_index, y='Extent', label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
-    
+
     # Fill in the shaded plot to show which years fall within <sigma> standard deviations from the 1981-2010 mean
     climo_df.index = common_index
     ax.fill_between(common_index,
                     (climo_df.Average_Extent - sigma*climo_df.STD),
                     (climo_df.Average_Extent + sigma*climo_df.STD),
-                    facecolor='grey', alpha=0.4, zorder=2, 
-                    label='$\pm${}$\sigma$ range'.format(int(sigma)))
+                    facecolor='grey', alpha=0.4, zorder=2,
+                    label='$\pm${}$\sigma$ range'.format(int(sigma))) #pylint: disable=W1401
     # Draw a dotted line showing the actual 1981-2010 mean ice extent
     climo_df.plot(ax=ax, x=common_index, y='Average_Extent', label='1981-2010 Mean',
                   linewidth=1.5, linestyle='dotted', color='black', zorder=3)
@@ -224,9 +224,10 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
 def main(cfg):
     data_dir = cfg['data_dir'] + '/daily'
     plot_dir = cfg['plot_dir']
-    
+
     # prep
-    if not os.path.exists(data_dir): os.makedirs(data_dir)
+    if not os.path.exists(data_dir): 
+        os.makedirs(data_dir)
     N_daily_csv, N_daily_climo = download_daily_data(data_dir, hemisphere='N')
     S_daily_csv, S_daily_climo = download_daily_data(data_dir, hemisphere='S')
     N_daily_df, N_climo_df = prep_dataframes(N_daily_csv, N_daily_climo)
@@ -234,7 +235,8 @@ def main(cfg):
     G_daily_df, G_climo_df = prep_global_dataframes(N_daily_df, N_climo_df, S_daily_df, S_climo_df)
 
     # plot
-    if not os.path.exists(plot_dir): os.makedirs(plot_dir)
+    if not os.path.exists(plot_dir): 
+        os.makedirs(plot_dir)
     n_fig = plot_timeseries(N_daily_df, N_climo_df, 'Arctic')
     s_fig = plot_timeseries(S_daily_df, S_climo_df, 'Antarctic')
     g_fig = plot_timeseries(G_daily_df, G_climo_df, 'Global')
@@ -248,11 +250,12 @@ def main(cfg):
     #TODO: Produce console printouts of daily decline trends, etc.
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.dirname(__file__)))
     # python DailyIceIndexPlotter.py config.cfg
     if len(sys.argv) == 2:
-        cfgfile = sys.argv[1]
-        print "Attempting to parse config file: ", cfgfile
-        CFG = parse_cfg(cfgfile)
+        CFGFILE = sys.argv[1]
+        print "Attempting to parse config file: ", CFGFILE
+        CFG = parse_cfg(CFGFILE)
     # python DailyIceIndexPlotter.py
     else:
         print "Processing with default config options"
