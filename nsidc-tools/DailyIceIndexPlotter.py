@@ -226,7 +226,7 @@ def main(cfg):
     plot_dir = cfg['plot_dir']
 
     # prep
-    if not os.path.exists(data_dir):
+    if not os.path.exists(data_dir): 
         os.makedirs(data_dir)
     N_daily_csv, N_daily_climo = download_daily_data(data_dir, hemisphere='N')
     S_daily_csv, S_daily_climo = download_daily_data(data_dir, hemisphere='S')
@@ -235,7 +235,7 @@ def main(cfg):
     G_daily_df, G_climo_df = prep_global_dataframes(N_daily_df, N_climo_df, S_daily_df, S_climo_df)
 
     # plot
-    if not os.path.exists(plot_dir):
+    if not os.path.exists(plot_dir): 
         os.makedirs(plot_dir)
     n_fig = plot_timeseries(N_daily_df, N_climo_df, 'Arctic')
     s_fig = plot_timeseries(S_daily_df, S_climo_df, 'Antarctic')
