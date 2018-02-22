@@ -347,9 +347,9 @@ def plot_stacked_fill(week=35, bounds=[65.0, 90.0, -180.0, 180.0], start_year=19
 
 def main(cfg):
     '''
-    Marshal the other functions in this script
+    Call the other functions in this script
     '''
-    data_dir = cfg['data_dir'] + '/{}'.format(AGE_CONST)
+    data_dir = os.path.join(cfg['data_dir'], AGE_CONST)
     plot_dir = cfg['plot_dir']
 
     # prep
