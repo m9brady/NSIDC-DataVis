@@ -36,6 +36,7 @@ def parse_cfg(cfgfile):
 
 def download_monthly_data(download_dir, hemisphere='N'):
     today = datetime.today()
+    if not os.path.isdir(download_dir): os.makedirs(download_dir)
     if hemisphere.upper() in ['SOUTH', 'S']:
         csv_url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/monthly/data/'
         #shp_url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/monthly/shapefiles/shp_extent/'

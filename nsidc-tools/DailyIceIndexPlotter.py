@@ -130,7 +130,7 @@ def prep_dataframes(daily, climo):
                            dtype={'DOY':'uint16', 'Average_Extent':float, 'STD':float, '10th':float, 
                                   '25th':float, '50th':float, '75th':float, '90th':float})
     # Drop Feb 29 from climo because it is the worst
-    df_climo = df_climo.loc[df_climo.DOY <> 60]
+    df_climo = df_climo.loc[df_climo.DOY != 60]
     df_climo.loc[:, 'DOY'] = np.linspace(1, 365, 365, dtype='uint16')
     return df_daily, df_climo
 
