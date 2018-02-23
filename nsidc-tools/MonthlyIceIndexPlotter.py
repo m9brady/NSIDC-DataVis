@@ -1,14 +1,13 @@
 import os
 import sys
+import warnings
+# suppress the FutureWarning about pandas.core.datetools
+warnings.simplefilter(action='ignore', category=FutureWarning)
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
-from datetime import datetime, timedelta
+from datetime import datetime
 from glob import glob
 from shutil import copyfileobj
-from urllib2 import urlopen, URLError
-
-# suppress the FutureWarning about pandas.core.datetools
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+from urllib2 import URLError, urlopen
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,6 +15,7 @@ import pandas as pd
 import statsmodels.api as sm
 from dateutil.relativedelta import relativedelta
 from matplotlib.offsetbox import AnchoredText
+
 
 # constants to change
 PLOT_MONTH = int(datetime.today().strftime('%m'))
@@ -35,6 +35,7 @@ def parse_cfg(cfgfile):
 
 
 def download_monthly_data(download_dir, hemisphere='N'):
+    if not os.path.isdir(download_dir): os.makedirs(download_dir)
     today = datetime.today()
     if not os.path.isdir(download_dir): os.makedirs(download_dir)
     if hemisphere.upper() in ['SOUTH', 'S']:
@@ -59,9 +60,9 @@ def download_monthly_data(download_dir, hemisphere='N'):
         if not os.path.isfile(dst_file):
             you_gotta_download = True
         else:
-            # Re-download the file if it is >1 month older relative to current day at start of script execution
+            # Re-download the file if it is >15 days older relative to current day at start of script execution
             modtime = datetime.fromtimestamp(os.path.getmtime(dst_file))
-            if modtime <= today - relativedelta(months=1):
+            if modtime <= today - relativedelta(days=15):
                 you_gotta_download = True
         if you_gotta_download: # then go get it!
             print "Retrieving {}-hemisphere monthly data ({}) from NSIDC FTP...".format(hemisphere, curr_month.strftime("%b"))
@@ -263,7 +264,7 @@ def main(cfg):
     s_monthly_fig = plot_dframe(s_dframe, month=PLOT_MONTH, version=s_version)
     n_anomaly_fig = plot_anomaly(n_dframe, month=PLOT_MONTH, version=n_version)
     s_anomaly_fig = plot_anomaly(s_dframe, month=PLOT_MONTH, version=s_version)
-    
+
     # Save figures to local PNG
     print "\nSaving plots to", os.path.abspath(plot_dir)
     n_monthly_fig.savefig(os.path.join(plot_dir, 'NSIDC_MonthlyIceIndex_N-Hemisphere.png'))
@@ -274,11 +275,12 @@ def main(cfg):
 
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.dirname(__file__)))
     # python MonthlyIceIndexPlotter.py config.cfg
     if len(sys.argv) == 2:
-        cfgfile = sys.argv[1]
-        print "Attempting to parse config file: ", cfgfile
-        CFG = parse_cfg(cfgfile)
+        CFGFILE = sys.argv[1]
+        print "Attempting to parse config file: ", CFGFILE
+        CFG = parse_cfg(CFGFILE)
     # python MonthlyIceIndexPlotter.py
     else:
         print "Processing with default config options"
