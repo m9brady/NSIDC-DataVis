@@ -45,15 +45,13 @@ def download_daily_data(download_dir, hemisphere='N'):
     try:
         ftp_listing = urlopen(url).read().splitlines()
     except URLError:
-        print "Cannot connect to NSIDC FTP, check your internet settings"
-        return None, None
+        raise URLError("Cannot connect to NSIDC FTP url: {}".format(url))
     data_files = [f.split()[-1] for f in ftp_listing[:4] if f.endswith('.csv')]
     #  climatology file (.csv)
     try:
         climatology = [url+"/"+d for d in data_files if 'climatology' in d][0]
     except IndexError:
-        print "Cannot locate climatology dataset at FTP:", url
-        return None, None
+        raise Exception("Cannot locate climatology dataset at FTP: {}".format(url))
     target_climo = os.path.join(download_dir, os.path.basename(climatology))
     you_gotta_download = False
     if not os.path.isfile(target_climo):
@@ -75,8 +73,7 @@ def download_daily_data(download_dir, hemisphere='N'):
     try:
         daily = [url+"/"+d for d in data_files if 'daily' in d][0]
     except IndexError:
-        print "Cannot locate daily dataset at FTP:", url
-        return None, None
+        raise Exception("Cannot locate daily dataset at FTP: {}".format(url))
     target_daily = os.path.join(download_dir, os.path.basename(daily))
     you_gotta_download = False
     if not os.path.isfile(target_daily):
@@ -166,8 +163,7 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
     '''
     fig, ax = plt.subplots(figsize=(12, 7))
     # To overlay the years rather than plot sequentially, we can force the data to all be in the same common year
-    common_date = datetime(2010, 1, 1)
-    common_index = pd.DatetimeIndex(start=common_date, end=common_date+timedelta(364), freq='1D')
+    common_index = pd.date_range(start=datetime(2010, 1, 1), end=datetime(2010, 12, 31), freq='1D')
     min_year = daily_df.Year.min()
     max_year = daily_df.Year.max()
     plt.title('Daily {0} Sea Ice Extent {1}-{2}'.format(aoi.capitalize(), min_year, max_year), fontdict=TITLE_FONTPARAMS)
@@ -181,9 +177,8 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
             lineweight = 3.0
             linetype = 'dashed'
         subframe = daily_df.loc[daily_df.Year == year]
-        if len(subframe) < 365:
-            dobj = datetime(year, 1, 1)
-            expanded_index = pd.DatetimeIndex(start=dobj, end=dobj+timedelta(364), freq='1D')
+        if subframe.shape[0] < 365:
+            expanded_index = pd.date_range(start=datetime(year, 1, 1), end=datetime(year, 12, 31), freq='1D')
             subframe = subframe.reindex(expanded_index)
         subframe.index = common_index
         # experimenting with pandas rolling means
@@ -194,10 +189,10 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
     # Fill in the shaded plot to show which years fall within <sigma> standard deviations from the 1981-2010 mean
     climo_df.index = common_index
     ax.fill_between(common_index,
-                    (climo_df.Average_Extent - sigma*climo_df.STD),
-                    (climo_df.Average_Extent + sigma*climo_df.STD),
+                    (climo_df.Average_Extent - sigma * climo_df.STD),
+                    (climo_df.Average_Extent + sigma * climo_df.STD),
                     facecolor='grey', alpha=0.4, zorder=2,
-                    label='$\pm${}$\sigma$ range'.format(int(sigma)))
+                    label='$\pm${}$\sigma$ range'.format(int(sigma))) # pylint: disable=W1401
     # Draw a dotted line showing the actual 1981-2010 mean ice extent
     climo_df.plot(ax=ax, x=common_index, y='Average_Extent', label='1981-2010 Mean',
                   linewidth=1.5, linestyle='dotted', color='black', zorder=3)
@@ -211,7 +206,8 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
     ax.set_xlabel('Month', fontdict=LABEL_FONTPARAMS)
     ax.set_ylabel('Extent (million square kilometers)', fontdict=LABEL_FONTPARAMS)
     ax.minorticks_off()
-    ax.legend(ncol=int(np.ceil((len(daily_df.Year.unique())+1)/10.)), loc='best', labelspacing=0.3, columnspacing=0.5)
+    legend_cols = int(np.ceil((daily_df.Year.unique().shape[0] + 1) / 10.))
+    ax.legend(ncol=legend_cols, loc='best', labelspacing=0.3, columnspacing=0.5)
     fig.tight_layout()
     fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v3.0 daily data files (doi:10.7265/N5736NV7)")
     latest_row = subframe.loc[~pd.isnull(subframe.Extent)].iloc[-1] # pylint: disable=E1130
