@@ -57,7 +57,7 @@ def download_monthly_data(download_dir, hemisphere='N'):
         curr_month = datetime(1900, int(os.path.basename(src_file).split("_")[1]), 1)
         dst_file = os.path.join(download_dir, os.path.basename(src_file))
         you_gotta_download = False
-        if not os.path.isfile(dst_file):
+        if not os.path.exists(dst_file):
             you_gotta_download = True
         else:
             # Re-download the file if it is >15 days older relative to current day at start of script execution
