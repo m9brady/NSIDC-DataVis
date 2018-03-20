@@ -42,7 +42,7 @@ Tschudi, M., C. Fowler, J. Maslanik, J. S. Stewart, and W. Meier. 2016. EASE-Gri
 
 ### IceAgePlotter
 *Extra Requirements:* You must have a [NASA EarthData Catalogue](https://earthdata.nasa.gov/) account, and a properly-setup `.netrc` file:
-- Windows: `echo machine urs.earthdata.nasa.gov login X password Y >> %USERPROFILE%\.netrc` (replace X and Y with your username and password)
+- Windows: `echo machine urs.earthdata.nasa.gov login X password Y >> %USERPROFILE%\.netrc` (replace `X` and `Y` with your username and password)
 
 *Extra Notes:* There are several constants at the top of the script that can be edited at the user's discretion:
 - `AGE_CONST`: The dataset ID for local storage folder organization
