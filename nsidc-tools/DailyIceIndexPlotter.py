@@ -222,7 +222,7 @@ def main(cfg):
     plot_dir = cfg['plot_dir']
 
     # prep
-    if not os.path.exists(data_dir): 
+    if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     N_daily_csv, N_daily_climo = download_daily_data(data_dir, hemisphere='N')
     S_daily_csv, S_daily_climo = download_daily_data(data_dir, hemisphere='S')

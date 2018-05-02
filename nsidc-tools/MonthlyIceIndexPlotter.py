@@ -54,7 +54,7 @@ def download_monthly_data(download_dir, hemisphere='N'):
         print "No files found at remote FTP:", csv_url
         return None
     for src_file in csv_files:
-        curr_month = datetime(1900, int(os.path.basename(src_file).split("_")[1]), 1)
+        curr_month = datetime(1900, int(os.path.basename(src_file).split("_")[1]), 1).strftime("%b")
         dst_file = os.path.join(download_dir, os.path.basename(src_file))
         you_gotta_download = False
         if not os.path.exists(dst_file):
@@ -62,16 +62,16 @@ def download_monthly_data(download_dir, hemisphere='N'):
         else:
             # Re-download the file if it is >15 days older relative to current day at start of script execution
             modtime = datetime.fromtimestamp(os.path.getmtime(dst_file))
-            if modtime <= today - relativedelta(days=15):
+            if modtime <= today - relativedelta(days=5):
                 you_gotta_download = True
         if you_gotta_download: # then go get it!
-            print "Retrieving {}-hemisphere monthly data ({}) from NSIDC FTP...".format(hemisphere, curr_month.strftime("%b"))
+            print "Retrieving {}-hemisphere monthly data ({}) from NSIDC FTP...".format(hemisphere, curr_month)
             remote_data = urlopen(src_file)
             with open(dst_file, 'wb') as local_data:
                 copyfileobj(remote_data, local_data)
             remote_data.close()
         else:
-            print "Existing local monthly ({}) dataset for {}-hemisphere is fresh enough...".format(curr_month.strftime("%b"), hemisphere)
+            print "Existing local monthly ({}) dataset for {}-hemisphere is fresh enough...".format(curr_month, hemisphere)
     return None
 
 
