@@ -183,19 +183,21 @@ def plot_timeseries(daily_df, climo_df, aoi='Arctic', sigma=2.):
         subframe.index = common_index
         # experimenting with pandas rolling means
         extent_rolling = subframe['Extent'].rolling(min_periods=1, window=5, center=False).mean()
-        extent_rolling.plot(ax=ax, label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
+        extent_rolling.plot(ax=ax, x=common_index, label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
         #subframe.plot(ax=ax, x=common_index, y='Extent', label=year, linewidth=lineweight, linestyle=linetype, zorder=2)
 
     # Fill in the shaded plot to show which years fall within <sigma> standard deviations from the 1981-2010 mean
     climo_df.index = common_index
+    avg_extent = climo_df.Average_Extent
+    std = climo_df.STD
     ax.fill_between(common_index,
-                    (climo_df.Average_Extent - sigma * climo_df.STD),
-                    (climo_df.Average_Extent + sigma * climo_df.STD),
+                    (avg_extent - sigma * std),
+                    (avg_extent + sigma * std),
                     facecolor='grey', alpha=0.4, zorder=2,
                     label='$\pm${}$\sigma$ range'.format(int(sigma))) # pylint: disable=W1401
     # Draw a dotted line showing the actual 1981-2010 mean ice extent
-    climo_df.plot(ax=ax, x=common_index, y='Average_Extent', label='1981-2010 Mean',
-                  linewidth=1.5, linestyle='dotted', color='black', zorder=3)
+    avg_extent.plot(ax=ax, x=common_index, label='1981-2010 Mean',
+                    linewidth=1.5, linestyle='dotted', color='black', zorder=3)
     # Figure formatting
     ax.grid(which='major', axis='both', color='#ECECEC', linestyle='solid', linewidth=1., zorder=2)
     xticks = [d for d in common_index if d.day == 1]

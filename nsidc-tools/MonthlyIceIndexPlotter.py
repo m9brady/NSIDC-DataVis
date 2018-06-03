@@ -100,7 +100,7 @@ def prep_dframe(csv_dir, hemisphere='N'):
     return dframe, data_version
 
 
-def plot_dframe(dframe, month=None, version='3.0', summary=False):
+def plot_dframe(dframe, month=None, version='3.0', print_summary=False):
     # rudimentary parameter checking
     if month is not None and month in range(1,13):
         # subset input dataframe to the month of interest
@@ -156,8 +156,8 @@ def plot_dframe(dframe, month=None, version='3.0', summary=False):
     ax.set_xticks(np.arange(minyear, maxyear+1, 1), minor=True)
     fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v{} monthly data files (doi:10.7265/N5736NV7)".format(version))
     # some fun statistics and an estimate of what the NSIDC Monthly Sea Ice News and Analysis will be
-    if summary:
-        print est.summary2()
+    if print_summary:
+        print est.summary2() # pylint: disable=E1101
     # get the climatological (30-year) mean extent for 1981-2010
     climo_1981_2010 = subframe[subframe.loc[subframe.year == 1981].index.tolist()[0]:subframe.loc[subframe.year == 2011].index.tolist()[0]].extent.mean()
     # linear rate of change in million sq km
@@ -172,7 +172,7 @@ def plot_dframe(dframe, month=None, version='3.0', summary=False):
     return fig
 
 
-def plot_anomaly(dframe, month=None, version='3.0', summary=False):
+def plot_anomaly(dframe, month=None, version='3.0', print_summary=False):
     # rudimentary parameter checking
     if month is not None and month in range(1,13):
         # subset input dataframe to the month of interest
@@ -240,8 +240,8 @@ def plot_anomaly(dframe, month=None, version='3.0', summary=False):
                               round(climo_1981_2010, 1), round(pct_decade, 1), round(pct_decade_std, 1)), loc=3, prop=dict(size=11))
     ax.add_artist(frame_text)
     fig.text(0.010, 0.016, "Source: NSIDC Sea Ice Index v{} monthly data files (doi:10.7265/N5736NV7)".format(version))
-    if summary:
-        print est.summary2()
+    if print_summary:
+        print est.summary2() # pylint: disable=E1101
     print "\nEstimated anomaly stats for the Monthly {} Sea Ice News\n-------------------------------------".format(region.capitalize())
     print u"Anomaly slope = {} \u00B1{} percent per decade".format(round(pct_decade,1), round(pct_decade_std,1))
     return fig
