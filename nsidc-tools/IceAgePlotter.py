@@ -212,8 +212,8 @@ def plot_stacked_fill(week=35, bounds=[65.0, 90.0, -180.0, 180.0], start_year=19
         myi4_count = len(age_arr[age_arr == 20])
         myi5_count = len(age_arr[np.logical_and(age_arr >= 25, age_arr < 254)])
         #ow_count = len(age_arr[age_arr == 0])
-        coastline_count = len(age_arr[age_arr == 254])
-        land_count = len(age_arr[age_arr == 255])
+        #coastline_count = len(age_arr[age_arr == 254])
+        #land_count = len(age_arr[age_arr == 255])
         ice_count = fyi_count + syi_count + myi3_count + myi4_count + myi5_count
         #sea_count = ice_count + ow_count
         # percentages of all ocean-related class pixels (better-looking for arctic aoi)
@@ -298,7 +298,7 @@ def plot_stacked_fill(week=35, bounds=[65.0, 90.0, -180.0, 180.0], start_year=19
     # add text to denote which age dataset is being displayed
     text_content = "Dataset shown: {}".format(os.path.basename(map_file))
     props = dict(boxstyle='round', facecolor='white', alpha=1.)
-    text = ax_map.text(200000, 200000, text_content, bbox=props)
+    ax_map.text(200000, 200000, text_content, bbox=props)
     # get unique pixel values, for setting up the colour mapping
     uni = np.unique(f[~np.isnan(f)]).tolist()
     # hex values for colormap
@@ -356,7 +356,7 @@ def main(cfg):
     download_bin_data(data_dir)
 
     # plot
-    age_plot = plot_stacked_fill(WEEK, bounds=GEO_BOUNDS, data_dir=data_dir)
+    age_plot = plot_stacked_fill(week=WEEK, bounds=GEO_BOUNDS, data_dir=data_dir)
 
     # save
     print "Saving plot to", os.path.abspath(plot_dir)
