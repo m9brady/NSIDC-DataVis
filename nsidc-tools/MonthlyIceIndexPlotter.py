@@ -159,7 +159,7 @@ def plot_dframe(dframe, month=None, version='3.0', print_summary=False):
     if print_summary:
         print est.summary2() # pylint: disable=E1101
     # get the climatological (30-year) mean extent for 1981-2010
-    climo_1981_2010 = subframe[subframe.loc[subframe.year == 1981].index.tolist()[0]:subframe.loc[subframe.year == 2011].index.tolist()[0]].extent.mean()
+    climo_1981_2010 = subframe.loc[(subframe.year >= 1981) & (subframe.year <= 2010), 'extent'].mean()
     # linear rate of change in million sq km
     change_rate = est.params.year
     frame_text = AnchoredText("Linear rate of change: {} km$^2$ per year\nPercent per decade (relative to 1981-2010 mean): {}%".format(int(round(change_rate * 1000000, -2)),round(change_rate / climo_1981_2010 * 10 * 100, 2)),
@@ -183,7 +183,7 @@ def plot_anomaly(dframe, month=None, version='3.0', print_summary=False):
     title_font = {'fontsize': 20, 'fontweight': 'regular'}
     axes_label_font = {'fontsize': 16, 'fontweight': 'regular'}
     # get the climatological (30-year) mean extent for 1981-2010
-    climo_1981_2010 = subframe[subframe.loc[subframe.year == 1981].index.tolist()[0]:subframe.loc[subframe.year == 2011].index.tolist()[0]].extent.mean()
+    climo_1981_2010 = subframe.loc[(subframe.year >= 1981) & (subframe.year <= 2010), 'extent'].mean()
     # calculate the anomalies relative to 30-year mean
     extent_anomaly = (subframe.extent - climo_1981_2010) / climo_1981_2010 * 100.
     extent_anomaly.name = 'extent_anomaly'
