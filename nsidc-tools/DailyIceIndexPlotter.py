@@ -81,7 +81,7 @@ def download_daily_data(download_dir, hemisphere='N'):
     else:
         # Re-download the file if it is >=12 hours older relative to current day at start of script execution
         modtime = datetime.fromtimestamp(os.path.getmtime(target_daily))
-        if modtime <= today - timedelta(0.5):
+        if modtime <= (today - timedelta(0.5)):
             you_gotta_download = True
     if you_gotta_download: # then download!
         print "Retrieving {}-hemisphere daily data from NSIDC FTP...".format(hemisphere)

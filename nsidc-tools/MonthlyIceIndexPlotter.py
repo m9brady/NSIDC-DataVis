@@ -60,9 +60,9 @@ def download_monthly_data(download_dir, hemisphere='N'):
         if not os.path.exists(dst_file):
             you_gotta_download = True
         else:
-            # Re-download the file if it is >15 days older relative to current day at start of script execution
+            # Re-download the file if it is >5 days older relative to current day at start of script execution
             modtime = datetime.fromtimestamp(os.path.getmtime(dst_file))
-            if modtime <= today - relativedelta(days=5):
+            if modtime <= (today - relativedelta(days=5)):
                 you_gotta_download = True
         if you_gotta_download: # then go get it!
             print "Retrieving {}-hemisphere monthly data ({}) from NSIDC FTP...".format(hemisphere, curr_month)
